@@ -1,0 +1,11 @@
+#Rename this file to config.py (which is excluded from git commits to try and help people not share
+#  their SSIDs and passphrases, while still putting an example config file into the repo)
+#Treat this as a standard text file.  Make sure you're keeping your answers here inside the quotes
+
+ssid = 'DomainOfPrintsCharles'
+passphrase = 'CorrectHorseBatteryStaple'
+printer_ip = '192.168.202.4'
+printer_port = '7125'
+
+sta_if.active(True)
+
