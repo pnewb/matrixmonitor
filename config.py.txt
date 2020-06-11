@@ -6,6 +6,3 @@ ssid = 'DomainOfPrintsCharles'
 passphrase = 'CorrectHorseBatteryStaple'
 printer_ip = '192.168.202.4'
 printer_port = '7125'
-
-sta_if.active(True)
-

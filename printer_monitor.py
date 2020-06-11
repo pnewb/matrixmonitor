@@ -19,14 +19,14 @@ from utime import sleep
 #http://192.168.3.4:7125/printer/status?heater_bed
 #{"result": {"heater_bed": {"temperature": 99.96510699366026, "target": 100.0}}}
 #printer/status?extruder
-#{"result": {"extruder": {"pressure_advance": 0.788, "target": 235.0, "temperature": 234. 
+#{"result": {"extruder": {"pressure_advance": 0.788, "target": 235.0, "temperature": 234.
 #meteyou V2.167.347Today at 12:00 AM
 #@pnewb V2.042 | V2.142 i think this is only the status for the display (M73). i use virtual_sdcard percent -> http://192.168.3.4:7125/printer/status?virtual_sdcard=progress
 #this command is only for progress. if you need also the estimation time, remove "=progress" and you get more data.
 #
 #Arksine V2.179Today at 3:24 AM
 #That is correct.  If what you want is M73 status then display_status.progress is what you want.  Keep in mind that there is a timeout with that variable, if it doesn't receive an update after 5 seconds it resets to zero.  File progress can be found the way meteyou mentioned.
-#The remaining time calculations need to be done by the client, they are fairly simple.  You can get the total estimated time via the request to the file list (it shows up in metadata).  A simple calculation for remaining time can be done something like this  
+#The remaining time calculations need to be done by the client, they are fairly simple.  You can get the total estimated time via the request to the file list (it shows up in metadata).  A simple calculation for remaining time can be done something like this
 #remaining = est_time - (est_time * progress)
 #The virtual_sdcard object also has two attributes, "print_duration" and "total_duration".  The "total_duration" is the number of seconds that have elapsed since the print started.  The "print_duration" is generally the same, but it excludes any time spent paused.   They can be used to estimated remaining times if you have no metadata
 #remaining = print_duration / progress - print_duration
@@ -42,6 +42,8 @@ colors = {'red': (50,0,0),
 np = NeoPixel(Pin(27), 25)
 
 status_url = 'http://{}:{}/printer/status?'.format(config.printer_ip, config.printer_port)
+#This is a bad name, but 'server_url' is worse.
+temperature_url = 'http://{}:{}/server/'.format(config.printer_ip, config.printer_port)
 
 def percentage_complete_if_printing():
 
@@ -57,7 +59,7 @@ def display_percentage_complete(pct_complete):
 
     for pxl in range(pixel_count):
         np[pxl] = colors['blue']
-    
+
     np.write()
 
 
@@ -93,7 +95,7 @@ def display_temperatures(temps):
 
     if temps_reached == 2:
         display_time(time_at_temp())
-    
+
     np.write()
 
 
@@ -112,7 +114,7 @@ def display_time(time):
             else:
                 np[pixel_count] = colors['off']
                 print('blanking pixel {}'.format(pixel_count))
-            
+
             pixel_count += 1
 
     np.write()
@@ -136,7 +138,7 @@ def time_at_temp():
     #Temperature stores every 1s, for a maximum of 20m.  Let's find out just how long it's been that we've been
     #  "at temp", given a little wiggle room for PID wiggles
     #Do we want a configurable heat_soak value to just green light when that's reached instead of waiting 20m?
-    temp_store = requests.get(status_url + 'temperature_store').json()
+    temp_store = requests.get(temperature_url + 'temperature_store').json()
     shortest_time_at_target = 20 * 60
     for item in ['extruder', 'heater_bed']:
         target = temp_store['result'][item]['targets'][-1]
@@ -157,7 +159,7 @@ def time_at_temp():
 
     return shortest_time_at_target/60
 
-        
+
 def run():
     percentage_complete = percentage_complete_if_printing()
 

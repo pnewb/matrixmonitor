@@ -14,7 +14,7 @@ During an active print we'll use the top 4 rows to display percentage completed,
 minutes remaining, the bottom row will be a countdown until the print is estimated to be done.
 
 
-#Setup
+# Setup
 
 Edit up the config.txt with your ssid and passphrase, along with the IP of the printer you'd like to monitor.
 
