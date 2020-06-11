@@ -56,7 +56,7 @@ def percentage_complete_if_printing():
     return False
 
 def display_percentage_complete(pct_complete):
-    pixel_count = round(int(pct_complete * 100)) * 2
+    pixel_count = round(int(pct_complete * 10)) * 2
 
     for pxl in range(pixel_count):
         np[pxl] = colors['blue']
