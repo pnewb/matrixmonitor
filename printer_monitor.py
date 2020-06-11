@@ -7,6 +7,7 @@ import urequests as requests
 from machine import Pin
 from neopixel import NeoPixel
 from utime import sleep
+from utime import time
 
 #These are notes on what URLS return what kind of data, the {"result"}
 # sections are all pulled direct from the printer during actual prints
@@ -31,6 +32,10 @@ from utime import sleep
 #The virtual_sdcard object also has two attributes, "print_duration" and "total_duration".  The "total_duration" is the number of seconds that have elapsed since the print started.  The "print_duration" is generally the same, but it excludes any time spent paused.   They can be used to estimated remaining times if you have no metadata
 #remaining = print_duration / progress - print_duration
 
+status_url = 'http://{}:{}/printer/status?'.format(config.printer_ip, config.printer_port)
+temperatures_reached_time = False
+np = NeoPixel(Pin(27), 25)
+
 colors = {'red': (50,0,0),
           'green': (0,50,0),
           'blue': (0,0,50),
@@ -39,11 +44,7 @@ colors = {'red': (50,0,0),
           'off': (0,0,0),
           }
 
-np = NeoPixel(Pin(27), 25)
 
-status_url = 'http://{}:{}/printer/status?'.format(config.printer_ip, config.printer_port)
-#This is a bad name, but 'server_url' is worse.
-temperature_url = 'http://{}:{}/server/'.format(config.printer_ip, config.printer_port)
 
 def percentage_complete_if_printing():
 
@@ -55,7 +56,7 @@ def percentage_complete_if_printing():
     return False
 
 def display_percentage_complete(pct_complete):
-    pixel_count = round(int(pct_complete * 10)) * 2
+    pixel_count = round(int(pct_complete * 100)) * 2
 
     for pxl in range(pixel_count):
         np[pxl] = colors['blue']
@@ -95,6 +96,8 @@ def display_temperatures(temps):
 
     if temps_reached == 2:
         display_time(time_at_temp())
+    else:
+        temperatures_reached_time = False
 
     np.write()
 
@@ -135,35 +138,31 @@ def get_current_temperatures():
     return temps
 
 def time_at_temp():
-    #Temperature stores every 1s, for a maximum of 20m.  Let's find out just how long it's been that we've been
-    #  "at temp", given a little wiggle room for PID wiggles
-    #Do we want a configurable heat_soak value to just green light when that's reached instead of waiting 20m?
-    temp_store = requests.get(temperature_url + 'temperature_store').json()
-    shortest_time_at_target = 20 * 60
-    for item in ['extruder', 'heater_bed']:
-        target = temp_store['result'][item]['targets'][-1]
-        temp = temp_store['result'][item]['temperatures'][-1]
-        print('{} target: {}'.format(item, target))
+    #This is not 100% accurate.  The prior code to check the temperature_store worked great, except
+    # that it overflowed the memory limits on this tiny little device.
+    global temperatures_reached_time
 
-        time_index = -1
-        print('temp: {} target: {} percentage: {}'.format(temp, target, temp/target))
-        while temp/target > .98:
-            time_index -= 1
-            temp = temp_store['result'][item]['temperatures'][time_index]
-        time_at_target = abs(time_index)
-        print('{} seconds at temp: {}'.format(item, time_at_target))
+    if not temperatures_reached_time:
+        temperatures_reached_time = time()
 
-        if time_at_target < shortest_time_at_target:
-            shortest_time_at_target = time_at_target
-    print('minutes at target temperature: {}'.format(shortest_time_at_target/60))
+    max_time_at_target = 20 * 60
 
-    return shortest_time_at_target/60
+    time_at_target = time() - temperatures_reached_time
+    print('Minutes at target temperature: {}'.format(time_at_target/60))
+
+    if time_at_target < max_time_at_target:
+        return time_at_target/60
+
+    return max_time_at_target/60
+
+    
 
 
 def run():
     percentage_complete = percentage_complete_if_printing()
 
     if percentage_complete:
+        print('displaying percentage complete...')
         display_percentage_complete(percentage_complete)
         #Still need to deal with finding the remaining time and printing that out at the bottom once we're sub 30m
     else:

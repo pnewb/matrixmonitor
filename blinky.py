@@ -97,6 +97,9 @@ numbers = {
               0,0,0,1,0],
            }
 
+#This was the best I could come up with, but it's trash.
+# I want some kind of "everything is good" or "waiting"
+# image.
 voron = [0,0,1,0,1,
          0,1,0,1,0,
          1,0,1,0,1,
@@ -108,7 +111,6 @@ wifi  = [0,1,1,0,0,
          1,1,0,0,1,
          0,0,1,0,1,
          1,0,1,0,0]
-
 
 def countdown():
     print_matrix(numbers['nine'], 'green')
