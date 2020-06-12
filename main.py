@@ -2,6 +2,6 @@
 import printer_monitor
 from utime import sleep
 
-#while True:
-#    printer_monitor.run()
-#    sleep(30)
+while True:
+    printer_monitor.run()
+    sleep(30)

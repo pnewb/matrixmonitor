@@ -1,6 +1,7 @@
 #Rename this file to config.py (which is excluded from git commits to try and help people not share
 #  their SSIDs and passphrases, while still putting an example config file into the repo)
 #Treat this as a standard text file.  Make sure you're keeping your answers here inside the quotes
+#Thee printer_ip may also be a hostname, if you're into that kind of thing.
 
 ssid = 'DomainOfPrintsCharles'
 passphrase = 'CorrectHorseBatteryStaple'
